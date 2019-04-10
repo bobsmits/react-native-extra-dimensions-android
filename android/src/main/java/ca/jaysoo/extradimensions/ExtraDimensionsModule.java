@@ -80,14 +80,14 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
         constants.put("SOFT_MENU_BAR_HEIGHT", getSoftMenuBarHeight(metrics));
         constants.put("SMART_BAR_HEIGHT", getSmartBarHeight(metrics));
         constants.put("SOFT_MENU_BAR_ENABLED", hasPermanentMenuKey());
+        constants.put("NORMAL_NAVIGATION_BAR_HEIGHT", getNormalNavBarHeight(metrics));
 
         return constants;
     }
 
     private boolean hasPermanentMenuKey() {
         final Context ctx = getReactApplicationContext();
-        int id = ctx.getResources().getIdentifier("config_showNavigationBar", "bool", "android");
-        return !(id > 0 && ctx.getResources().getBoolean(id));
+        return ViewConfiguration.get(ctx).hasPermanentMenuKey();
     }
 
     private float getStatusBarHeight(DisplayMetrics metrics) {
@@ -99,16 +99,33 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
             : 0;
     }
 
+    private float getNormalNavBarHeight(DisplayMetrics metrics) {
+        try {
+            final Context ctx = getReactApplicationContext();
+            int resourceId = ctx.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                return ctx.getResources().getDimensionPixelSize(resourceId) / metrics.density;
+            }
+         } catch (Throwable e) {
+            return 0;
+        }
+        return 0;
+    }
+
     private float getSoftMenuBarHeight(DisplayMetrics metrics) {
         if(hasPermanentMenuKey()) {
             return 0;
         }
+        final float realHeight = getRealHeight(metrics);
         final Context ctx = getReactApplicationContext();
-        final int heightResId = ctx.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
-        return
-          heightResId > 0
-            ? ctx.getResources().getDimensionPixelSize(heightResId) / metrics.density
-            : 0;
+        final DisplayMetrics usableMetrics = ctx.getResources().getDisplayMetrics();
+
+        // Passing getMetrics will update the value of the Object DisplayMetrics metrics
+        ((WindowManager) mReactContext.getSystemService(Context.WINDOW_SERVICE))
+                .getDefaultDisplay().getMetrics(metrics);
+        final int usableHeight = usableMetrics.heightPixels;
+
+        return Math.max(0, realHeight - usableHeight / metrics.density);
     }
 
     private float getRealHeight(DisplayMetrics metrics) {

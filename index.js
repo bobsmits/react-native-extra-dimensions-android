@@ -46,6 +46,10 @@ export function isSoftMenuBarEnabled() {
   return get('SOFT_MENU_BAR_ENABLED');
 }
 
+export function getNormalNavBarHeight() {
+  return get('NORMAL_NAVIGATION_BAR_HEIGHT');
+}
+
 // stay compatible with pre-es6 exports
 export default {
   get,
@@ -54,5 +58,6 @@ export default {
   getStatusBarHeight,
   getSoftMenuBarHeight,
   getSmartBarHeight,
-  isSoftMenuBarEnabled
+  isSoftMenuBarEnabled,
+  getNormalNavBarHeight
 }
